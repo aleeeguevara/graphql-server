@@ -1,50 +1,23 @@
+const post = async (_, { id }, { getPosts }) => {
+  const response = await getPosts('/' + id);
+  const post = await response.json();
+  return post;
+};
+
 const posts = async (_, { input }, { getPosts }) => {
+  //parametros resolver (parent, params, context) parent só vai pros resolver de campo
   const searchParams = new URLSearchParams(input);
   const posts = await getPosts('/?' + searchParams);
   return posts.json();
 };
-const post = async (_, { id }, { getPosts }) => {
-  const response = await getPosts('/' + id);
-  const post = await response.json();
 
-  if (Math.random() > 0.5) {
-    return {
-      statusCode: 500,
-      message: 'Post timeout!',
-      timeout: 123,
-    };
-  }
-
-  if (typeof post.id === 'undefined') {
-    return {
-      statusCode: 404,
-      message: 'Post not found',
-      postId: id,
-    };
-  }
-  return post;
+const user = async ({ userId }, __, { getUsers }) => {
+  console.log(userId);
+  const user = await getUsers('/' + userId);
+  return user.json();
 };
 
 export const postResolvers = {
   Query: { post, posts },
-  Post: {
-    unixTimestamp: ({ createdAt }) => {
-      const timestamp = new Date(createdAt).getTime() / 1000; //milisegundos para segundos
-      return Math.floor(timestamp);
-    },
-  },
-  PostResult: {
-    __resolveType: (obj) => {
-      if (typeof obj.postId !== 'undefined') return 'PostNotFoundError';
-      if (typeof obj.timeout !== 'undefined') return 'PostTimeoutError'; //resolvendo para o union
-      if (typeof obj.id !== 'undefined') return 'Post';
-      return null;
-    },
-  },
-  PostError: {
-    __resolveType: (obj) => {
-      if (typeof obj.postId !== 'undefined') return 'PostNotFoundError'; //resolvendo para a interface
-      if (typeof obj.timeout !== 'undefined') return 'PostTimeoutError';
-    },
-  },
+  Post: { user }, //resolvers para algum campo da query..
 };
