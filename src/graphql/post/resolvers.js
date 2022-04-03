@@ -1,18 +1,16 @@
-const post = async (_, { id }, { getPosts }) => {
-  const response = await getPosts('/' + id);
-  const post = await response.json();
+const post = async (_, { id }, { dataSources }) => {
+  const post = await dataSources.postApi.getPost(id);
   return post;
 };
 
-const posts = async (_, { input }, { getPosts }) => {
+const posts = async (_, { input }, { dataSources }) => {
   //parametros resolver (parent, params, context) parent só vai pros resolver de campo
-  const searchParams = new URLSearchParams(input);
-  const posts = await getPosts('/?' + searchParams);
-  return posts.json();
+  const posts = await dataSources.postApi.getPosts(input);
+  return posts;
 };
 
-const user = async ({ userId }, _, { userDataLoader }) => {
-  return userDataLoader.load(userId);
+const user = async ({ userId }, _, { dataSources }) => {
+  return await dataSources.userApi.batchLoaderByPostsUserId(userId);
 };
 
 export const postResolvers = {
